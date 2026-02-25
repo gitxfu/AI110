@@ -3,6 +3,10 @@ from typing import Dict, List, Optional, Tuple
 Song = Dict[str, object]
 PlaylistMap = Dict[str, List[Song]]
 
+MOOD_HYPE = "Hype"
+MOOD_CHILL = "Chill"
+MOOD_MIXED = "Mixed"
+
 DEFAULT_PROFILE = {
     "name": "Default",
     "hype_min_energy": 7,
@@ -74,18 +78,18 @@ def classify_song(song: Song, profile: Dict[str, object]) -> str:
     is_chill_keyword = any(k in title for k in chill_keywords)
 
     if genre == favorite_genre or energy >= hype_min_energy or is_hype_keyword:
-        return "Hype"
+        return MOOD_HYPE
     if energy <= chill_max_energy or is_chill_keyword:
-        return "Chill"
-    return "Mixed"
+        return MOOD_CHILL
+    return MOOD_MIXED
 
 
 def build_playlists(songs: List[Song], profile: Dict[str, object]) -> PlaylistMap:
     """Group songs into playlists based on mood and profile."""
     playlists: PlaylistMap = {
-        "Hype": [],
-        "Chill": [],
-        "Mixed": [],
+        MOOD_HYPE: [],
+        MOOD_CHILL: [],
+        MOOD_MIXED: [],
     }
 
     for song in songs:
@@ -112,9 +116,9 @@ def compute_playlist_stats(playlists: PlaylistMap) -> Dict[str, object]:
     for songs in playlists.values():
         all_songs.extend(songs)
 
-    hype = playlists.get("Hype", [])
-    chill = playlists.get("Chill", [])
-    mixed = playlists.get("Mixed", [])
+    hype = playlists.get(MOOD_HYPE, [])
+    chill = playlists.get(MOOD_CHILL, [])
+    mixed = playlists.get(MOOD_MIXED, [])
 
     # Fix: use all_songs count, not just hype, for correct ratio denominator
     total = len(all_songs)
@@ -183,12 +187,12 @@ def lucky_pick(
 ) -> Optional[Song]:
     """Pick a song from the playlists according to mode."""
     if mode == "hype":
-        songs = playlists.get("Hype", [])
+        songs = playlists.get(MOOD_HYPE, [])
     elif mode == "chill":
-        songs = playlists.get("Chill", [])
+        songs = playlists.get(MOOD_CHILL, [])
     else:
         # Fix: include Mixed songs in the "any" pool
-        songs = playlists.get("Hype", []) + playlists.get("Chill", []) + playlists.get("Mixed", [])
+        songs = playlists.get(MOOD_HYPE, []) + playlists.get(MOOD_CHILL, []) + playlists.get(MOOD_MIXED, [])
 
     return random_choice_or_none(songs)
 
@@ -205,11 +209,11 @@ def random_choice_or_none(songs: List[Song]) -> Optional[Song]:
 
 def history_summary(history: List[Song]) -> Dict[str, int]:
     """Return a summary of moods seen in the history."""
-    counts = {"Hype": 0, "Chill": 0, "Mixed": 0}
+    counts = {MOOD_HYPE: 0, MOOD_CHILL: 0, MOOD_MIXED: 0}
     for song in history:
-        mood = song.get("mood", "Mixed")
+        mood = song.get("mood", MOOD_MIXED)
         if mood not in counts:
-            counts["Mixed"] += 1
+            counts[MOOD_MIXED] += 1
         else:
             counts[mood] += 1
     return counts
