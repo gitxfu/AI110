@@ -111,3 +111,9 @@ If you finish early or want an extra challenge, try one of these:
 - Stay curious. The unpredictability is intentional and part of the experience.
 
 When you finish, Playlist Chaos will feel more predictable, and you will have taken your first steps into AI-assisted debugging.
+
+## TF
+
+Students may have issues with the initial setup, such as configuring the environment and getting the app to run correctly. If the setup was incorrect, it made debugging more difficult and confusing.
+I also tried using tools like Copilot and Claude Code. They were helpful for spotting patterns and suggesting possible bugs, but their suggestions still needed to be reviewed carefully. AI could point out issues, but it was not always correct, so students still had to think critically.
+Another important reminder is to test the code piece by piece instead of changing everything at once. This makes it easier to locate where a bug starts. Keeping good commit habits is also useful so students can track changes and recover if something breaks.
