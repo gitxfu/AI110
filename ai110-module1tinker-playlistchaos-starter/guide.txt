@@ -1,0 +1,191 @@
+Tinker: Playlist Chaos
+ℹ️ Activity Overview
+⏰ ~45 minutes
+
+You tried to use AI to help you automate your playlists. It wrote a Streamlit app that is supposed to group songs into mood based playlists like "Hype," "Chill," and "Mixed" based on song details and a simple profile.
+
+Unfortunately, it is not doing what you expect. Some songs land in the wrong playlist, search feels unreliable, the "Lucky Pick" feature can misbehave, and the stats about your playlist do not always make sense.
+
+Your mission: use the AI assistant built into VS Code (GitHub Copilot Chat and smart actions) to debug, test, and improve this AI written app until it behaves more reliably. You will explore weird behavior through the UI, trace it back to the code, and make targeted fixes.
+
+Intended Behavior Overview
+
+To help you identify what is "broken" versus what is "intentional," use these rules as your benchmark for how the app should function in a perfect state:
+
+Song Classification (The "Mood" Engine):
+Hype: A song should be classified as "Hype" if its energy is greater than or equal to the hype_min_energy (default 7), if its genre matches the user's favorite_genre, or if the genre contains "hype" keywords (rock, punk, party).
+Chill: A song should be classified as "Chill" if its energy is less than or equal to the chill_max_energy (default 3) or if the title contains "chill" keywords (lofi, ambient, sleep).
+Mixed: Any song that does not strictly meet the "Hype" or "Chill" criteria should fall into the "Mixed" playlist.
+Search Functionality:
+The search bar should be case-insensitive and perform a partial match against the selected field (e.g., searching "AC" should find "AC/DC").
+It should return all songs where the query string is contained within the song's attribute.
+Playlist Statistics:
+Total Songs: Should represent the unique count of all songs across all categories.
+Average Energy: Should be the mathematical average of the energy levels of all songs in the system.
+Hype Ratio: Should represent the percentage of "Hype" songs relative to the total number of songs.
+Lucky Pick:
+When a user selects "Hype" or "Chill," the app must only pick a song from that specific playlist.
+Selecting "Any" should pull a random song from the combined pool of Hype and Chill (and ideally Mixed).
+Data Normalization:
+All user input (titles, artists, genres) should be trimmed of leading/trailing whitespace and handled consistently (e.g., artists and genres converted to lowercase for comparison) to prevent duplicate or mismatched entries.
+🎯 Goals
+By completing this activity, you will be able to...
+
+Identify and explain logic and state issues in AI generated Python code across multiple files.
+Use the AI assistant in VS Code (Copilot Chat and smart actions) to reason about debugging steps.
+Test behavior through the app interface and simple scenarios to verify that fixes work.
+Use Git and VS Code to version and document code changes.
+Critically evaluate AI debugging suggestions and refine them for correctness.
+✏️ Tinker Instructions
+Part 1: Meet the Chaos
+⏰ ~10 mins
+
+In this first step, you'll run the Playlist Chaos app and explore how it behaves. The interface looks polished, but the logic behind it does not always work the way you expect. Some songs show up in surprising playlists, search may not return what you think it should, the Lucky Pick feature can act strangely, and the statistics may not match what you see.
+
+
+Go to the Playlist Chaos starter repo and fork it to your GitHub account. Then clone your fork and open the project in VS Code.
+
+
+In your terminal, start the app:
+
+streamlit run app.py
+
+A browser window should open. Explore the app:
+
+Add songs with different titles, artists, genres, and energy values.
+Look at the Hype, Chill, and Mixed playlists and notice anything that feels off.
+Try the Lucky Pick feature in each mode.
+Look at the statistics and check if they match your expectations.
+Try searching for artists and see whether the results seem correct.
+As you try the app, do not just click buttons. Pick a specific expectation first, like "this song should probably be Chill" or "this search should return at least one result," then see what actually happens.
+When something surprises you, that surprise is your strongest clue that there is a bug worth investigating.
+
+
+When something does not make sense, switch back to VS Code and investigate the code:
+
+Open playlist_logic.py or app.py and search for the part of the code that might relate to what you saw.
+Highlight a section of code that you want to understand better.
+Open Copilot Chat in Ask mode and ask your own question about the code. For example, you might ask what the code is doing, what assumptions it makes, or how it might lead to the behavior you observed.
+What makes a good Copilot question? Strong questions usually include:
+What you selected
+What you expected to happen
+What actually happened in the app
+You don't need perfect wording. If the response is confusing or incomplete, that is a signal to ask a follow up question or rephrase.
+
+
+Read Copilot's explanation and take notes on any insights that help you understand the problem.
+
+Treat Copilot's response as a hypothesis, not a final answer. Ask yourself:
+Does this explanation match what I saw in the app?
+Are there assumptions here that might be wrong?
+Is anything still unclear?
+Confusion is useful. It tells you where to look next.
+
+📍Checkpoint: You should be able to describe at least a few examples of behavior that does not match your expectations, along with one or more insights from Copilot that help you understand where the problem might be coming from.
+Part 2: AI Debugging Collaboration
+⏰ ~15 mins
+
+Now that you have explored the app and identified behavior that does not seem correct, it is time to dig into the code and begin fixing problems. You'll use the AI in VS Code to help you reason about what the code is doing, why the issue might be happening, and how you might correct it.
+
+
+Choose one specific issue from Part 1 that you want to tackle first. Examples might include an incorrect playlist assignment, a search mismatch, a Lucky Pick error, or statistics that seem incorrect.
+
+A good first issue is something you can describe in one sentence, like "this song ends up in the wrong playlist" or "search does not return results I expect."
+Avoid starting with problems that feel huge or fuzzy. Smaller, specific issues are easier to reason about and easier to test after a fix.
+
+
+Open the file that seems most related to the problem. This may be playlist_logic.py or app.py, depending on the behavior.
+
+
+Find a section of code that you think might be responsible. Highlight it.
+
+
+Open Copilot Chat in Ask mode and ask your own question about the highlighted code. Your question should help you understand what the code is doing and how it relates to the issue you observed. You might ask about the purpose of the code, what assumptions it makes, or why it might behave differently than you expect.
+
+Early questions work best when they focus on understanding, not changing.
+Questions that ask what the code does, what assumptions it makes, or how it handles edge cases usually lead to better explanations than questions that jump straight to fixing.
+
+
+Read Copilot's explanation. If something does not make sense, ask follow up questions until you feel confident about what the code is doing.
+
+If Copilot's explanation does not match what you observed in the app, that is useful information.
+Try pointing out the mismatch or asking about a specific line of code. Debugging with AI is often a conversation, not a single question.
+
+
+Once you have a solid understanding of the problem, switch to Copilot Edit mode or begin making small manual adjustments to fix the issue. Keep your change focused. Avoid rewriting large sections of the file.
+
+Edit mode is most useful after you can clearly explain what is wrong and what should be different. If you cannot explain the problem in your own words yet, stay in Ask mode a bit longer.
+Copilot suggestions can look confident even when they are incomplete or slightly wrong. Before accepting a change, ask yourself:
+
+Does this match my understanding of the problem?
+Is it changing more than I intended?
+Can I explain why this should improve the behavior?
+
+Save your changes and return to the running app in your browser. Refresh the page or interact with the app again to test the effect of your fix.
+
+
+Decide whether the behavior improved. If the issue is not fully resolved, iterate. Revisit the code and refine your fix using Copilot or your own reasoning.
+
+📍Checkpoint: You should have at least one issue fixed or significantly improved in your running app. You should also be able to explain what you changed, why you changed it, and how you tested that it worked.
+Part 3: Copilot Refactor and Version Control
+⏰ ~10 mins
+
+You now have at least one working fix in place. In this part, you'll save your progress with Git and use Copilot to improve the structure of the code. A refactor should keep the behavior the same while making the code easier to understand and maintain.
+
+
+Open your terminal in VS Code and create a commit for the work you have already completed:
+
+git add app.py playlist_logic.py
+git commit -m "fix: resolved incorrect behavior in playlist logic"
+
+Look through the code in both files and choose a section that feels repetitive, unclear, or overly complex. This might be a helper function, a block of playlist logic, or a part of the UI flow.
+
+A good refactor target is usually:
+A single function that feels long or confusing
+Logic that is repeated in more than one place
+A section where variable names or structure make the intent hard to follow
+You don't need to refactor the whole file. One focused improvement is enough.
+
+
+Highlight the section you want to improve. Open Copilot Chat and ask for suggestions on how to make this code cleaner or easier to understand while keeping its behavior the same. You can ask broadly or frame your own goals for readability, structure, or simplicity.
+
+Refactor questions work best when they focus on readability or structure rather than cleverness.
+You might think in terms of "make this easier to follow" or "make the intent clearer," rather than "optimize" or "rewrite."
+
+
+Review Copilot's suggestions. Accept only the parts that make sense to you. You can use Edit mode if you want Copilot to propose specific edits, or you can apply changes manually.
+
+Copilot may suggest a refactor that changes more than you intended. It's okay to:
+Accept only part of the suggestion
+Modify it manually
+Reject it and try a different approach
+You should be able to explain why the new version is clearer than the old one.
+
+
+Save your files and return to the running app. Test any features affected by your refactor to confirm the behavior did not change.
+
+
+Once you are confident the refactor is safe, create another commit:
+
+git add app.py playlist_logic.py
+git commit -m "refactor: improved structure and readability"
+📍Checkpoint: When you run git log, you should see one commit for your bug fix and one commit for your refactor. The app should behave exactly as it did before the refactor, which confirms that your structural changes did not introduce new issues.
+Part 4: Reflect and Discuss
+⏰ ~10 mins
+
+You have explored a chaotic app, investigated issues, used Copilot to understand the code, applied your own fixes, and cleaned up part of the project. This last step gives you space to reflect on how you approached the debugging process and how the AI tools supported or challenged your thinking. The goal of this discussion is to compare approaches, prompts, and insights across your group and to notice patterns in how Copilot behaves during real debugging work.
+
+Share with your group the issue you chose to fix. Describe what you observed in the app, where you decided to look in the code, and what steps led you to the final fix.
+Compare how each person used Copilot Chat. Consider questions like:
+How did you decide what to ask?
+Did Copilot understand the context or did you need to guide it?
+Were there moments when Copilot misunderstood the code or gave an answer that you decided not to trust?
+Talk about the refactor you performed.
+Did Copilot suggest a structure that made sense?
+Did you edit or reject parts of its proposal?
+What helped you confirm the refactor was safe?
+Discuss how each of you tested your fixes.
+Which parts of the app did you try to confirm changes?
+Did any new issues appear?
+As a group, choose one insight about working with AI for debugging that you would want to share with future students. This could be a prompting habit, a testing strategy, or something you learned about when AI is helpful and when it is not.
+📍Checkpoint: Each person has shared their debugging experience, and your group has identified at least one insight about using AI in a real coding workflow that you can bring back to the larger class discussion.
