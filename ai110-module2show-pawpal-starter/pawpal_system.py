@@ -13,15 +13,15 @@ class Task:
 
     def mark_complete(self):
         """Mark this task as completed."""
-        pass
+        self.completed = True
 
     def reschedule(self, new_date: datetime):
         """Reschedule this task to a new date/time."""
-        pass
+        self.due_date = new_date
 
     def is_overdue(self) -> bool:
         """Check if this task is past its due date."""
-        pass
+        return not self.completed and self.due_date < datetime.now()
 
 
 @dataclass
@@ -35,15 +35,15 @@ class Pet:
 
     def add_task(self, task: Task):
         """Add a task to this pet's task list."""
-        pass
+        self.tasks.append(task)
 
     def remove_task(self, task: Task):
         """Remove a task from this pet's task list."""
-        pass
+        self.tasks.remove(task)
 
     def get_tasks(self) -> list:
         """Return all tasks for this pet."""
-        pass
+        return self.tasks
 
 
 @dataclass
@@ -55,15 +55,15 @@ class Owner:
 
     def add_pet(self, pet: Pet):
         """Add a pet to this owner's collection."""
-        pass
+        self.pets.append(pet)
 
     def remove_pet(self, pet: Pet):
         """Remove a pet from this owner's collection."""
-        pass
+        self.pets.remove(pet)
 
     def get_pets(self) -> list:
         """Return all pets belonging to this owner."""
-        pass
+        return self.pets
 
 
 class Scheduler:
@@ -74,20 +74,34 @@ class Scheduler:
 
     def add_owner(self, owner: Owner):
         """Register an owner with the scheduler."""
-        pass
+        self.owners.append(owner)
 
     def get_all_tasks(self) -> list:
         """Retrieve all tasks across all owners and their pets."""
-        pass
+        tasks = []
+        for owner in self.owners:
+            for pet in owner.get_pets():
+                for task in pet.get_tasks():
+                    tasks.append((pet.name, task))
+        return tasks
 
     def get_tasks_due_today(self) -> list:
         """Return only tasks that are due today."""
-        pass
+        today = datetime.now().date()
+        return [
+            (pet_name, task)
+            for pet_name, task in self.get_all_tasks()
+            if task.due_date.date() == today
+        ]
 
     def get_overdue_tasks(self) -> list:
         """Return all tasks that are past their due date."""
-        pass
+        return [
+            (pet_name, task)
+            for pet_name, task in self.get_all_tasks()
+            if task.is_overdue()
+        ]
 
     def get_tasks_by_pet(self, pet: Pet) -> list:
         """Return all tasks for a specific pet."""
-        pass
+        return pet.get_tasks()
