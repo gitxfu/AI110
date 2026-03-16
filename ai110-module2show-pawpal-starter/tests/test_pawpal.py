@@ -1,5 +1,5 @@
-from datetime import datetime
-from pawpal_system import Task, Pet
+from datetime import datetime, timedelta
+from pawpal_system import Task, Pet, Owner, Scheduler
 
 
 def test_mark_complete_changes_status():
@@ -14,3 +14,50 @@ def test_add_task_increases_count():
     assert len(pet.tasks) == 0
     pet.add_task(Task(name="Feeding", type="feeding", due_date=datetime(2026, 3, 15, 9, 0)))
     assert len(pet.tasks) == 1
+
+
+def test_sort_by_time_returns_chronological_order():
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Lab", age=2)
+    owner.add_pet(pet)
+
+    pet.add_task(Task(name="Lunch", type="feeding", due_date=datetime(2026, 3, 15, 12, 0)))
+    pet.add_task(Task(name="Walk", type="walk", due_date=datetime(2026, 3, 15, 7, 0)))
+    pet.add_task(Task(name="Meds", type="medication", due_date=datetime(2026, 3, 15, 9, 0)))
+
+    scheduler = Scheduler()
+    scheduler.add_owner(owner)
+    sorted_tasks = scheduler.sort_by_time()
+
+    times = [task.due_date for _, task in sorted_tasks]
+    assert times == sorted(times)
+
+
+def test_daily_recurrence_creates_next_day_task():
+    task = Task(name="Walk", type="walk", due_date=datetime(2026, 3, 15, 8, 0), frequency="daily")
+    next_task = task.mark_complete()
+
+    assert task.completed is True
+    assert next_task is not None
+    assert next_task.completed is False
+    assert next_task.due_date == datetime(2026, 3, 16, 8, 0)
+
+
+def test_detect_conflicts_flags_same_time():
+    owner = Owner(name="Alex", email="alex@example.com")
+    buddy = Pet(name="Buddy", species="dog", breed="Lab", age=2)
+    whiskers = Pet(name="Whiskers", species="cat", breed="Siamese", age=3)
+    owner.add_pet(buddy)
+    owner.add_pet(whiskers)
+
+    same_time = datetime(2026, 3, 15, 8, 0)
+    buddy.add_task(Task(name="Walk", type="walk", due_date=same_time))
+    whiskers.add_task(Task(name="Feeding", type="feeding", due_date=same_time))
+
+    scheduler = Scheduler()
+    scheduler.add_owner(owner)
+    conflicts = scheduler.detect_conflicts()
+
+    assert len(conflicts) == 1
+    assert "Walk" in conflicts[0]
+    assert "Feeding" in conflicts[0]

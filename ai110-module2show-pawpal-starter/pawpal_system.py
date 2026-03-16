@@ -118,6 +118,7 @@ class Scheduler:
 
     def sort_by_time(self, tasks: list = None) -> list:
         """Sort tasks by due_date. Uses all tasks if none provided."""
+        # tasks — a list of(pet_name, task) tuples, item[1] is the Task object
         if tasks is None:
             tasks = self.get_all_tasks()
         return sorted(tasks, key=lambda item: item[1].due_date)
