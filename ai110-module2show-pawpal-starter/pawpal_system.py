@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 @dataclass
@@ -8,12 +8,22 @@ class Task:
     name: str
     type: str
     due_date: datetime
+    frequency: str = "once"  # "once", "daily", "weekly"
     completed: bool = False
     notes: str = ""
 
     def mark_complete(self):
-        """Mark this task as completed."""
+        """Mark this task as completed. Returns a new Task for the next occurrence if recurring, else None."""
         self.completed = True
+        if self.frequency == "daily":
+            return Task(name=self.name, type=self.type,
+                        due_date=self.due_date + timedelta(days=1),
+                        frequency=self.frequency, notes=self.notes)
+        elif self.frequency == "weekly":
+            return Task(name=self.name, type=self.type,
+                        due_date=self.due_date + timedelta(weeks=1),
+                        frequency=self.frequency, notes=self.notes)
+        return None
 
     def reschedule(self, new_date: datetime):
         """Reschedule this task to a new date/time."""
@@ -105,3 +115,40 @@ class Scheduler:
     def get_tasks_by_pet(self, pet: Pet) -> list:
         """Return all tasks for a specific pet."""
         return pet.get_tasks()
+
+    def sort_by_time(self, tasks: list = None) -> list:
+        """Sort tasks by due_date. Uses all tasks if none provided."""
+        if tasks is None:
+            tasks = self.get_all_tasks()
+        return sorted(tasks, key=lambda item: item[1].due_date)
+
+    def filter_by_status(self, completed: bool) -> list:
+        """Filter all tasks by completion status."""
+        return [
+            (pet_name, task)
+            for pet_name, task in self.get_all_tasks()
+            if task.completed == completed
+        ]
+
+    def filter_by_pet_name(self, pet_name: str) -> list:
+        """Filter all tasks for a specific pet by name."""
+        return [
+            (pn, task)
+            for pn, task in self.get_all_tasks()
+            if pn == pet_name
+        ]
+
+    def detect_conflicts(self) -> list:
+        """Detect tasks scheduled at the same time. Returns list of warning strings."""
+        warnings = []
+        all_tasks = self.get_all_tasks()
+        for i in range(len(all_tasks)):
+            for j in range(i + 1, len(all_tasks)):
+                pet_a, task_a = all_tasks[i]
+                pet_b, task_b = all_tasks[j]
+                if task_a.due_date == task_b.due_date:
+                    warnings.append(
+                        f"Conflict: '{task_a.name}' ({pet_a}) and "
+                        f"'{task_b.name}' ({pet_b}) at {task_a.due_date.strftime('%I:%M %p')}"
+                    )
+        return warnings

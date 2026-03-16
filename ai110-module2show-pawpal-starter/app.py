@@ -34,9 +34,13 @@ with col2:
     new_age = st.number_input("Age", min_value=0, max_value=30, value=2)
 
 if st.button("Add pet"):
-    pet = Pet(name=new_pet_name, species=new_species, breed=new_breed, age=new_age)
-    owner.add_pet(pet)
-    st.success(f"Added {new_pet_name}!")
+    existing = [p.name for p in owner.get_pets()]
+    if new_pet_name in existing:
+        st.warning(f"'{new_pet_name}' already exists!")
+    else:
+        pet = Pet(name=new_pet_name, species=new_species, breed=new_breed, age=new_age)
+        owner.add_pet(pet)
+        st.success(f"Added {new_pet_name}!")
 
 # Show current pets
 if owner.get_pets():
@@ -63,10 +67,18 @@ if owner.get_pets():
 
     if st.button("Add task"):
         selected_pet = next(p for p in owner.get_pets() if p.name == selected_pet_name)
-        due = datetime.combine(datetime.now().date(), task_time)
-        task = Task(name=task_title, type=task_type, due_date=due)
-        selected_pet.add_task(task)
-        st.success(f"Added '{task_title}' for {selected_pet_name}!")
+        # Prevent duplicate: same name + same time on same pet
+        duplicate = any(
+            t.name == task_title and t.due_date.time() == task_time
+            for t in selected_pet.get_tasks()
+        )
+        if duplicate:
+            st.warning(f"'{task_title}' at {task_time.strftime('%I:%M %p')} already exists for {selected_pet_name}!")
+        else:
+            due = datetime.combine(datetime.now().date(), task_time)
+            task = Task(name=task_title, type=task_type, due_date=due)
+            selected_pet.add_task(task)
+            st.success(f"Added '{task_title}' for {selected_pet_name}!")
 else:
     st.info("Add a pet first before scheduling tasks.")
 
@@ -90,5 +102,11 @@ if st.button("Generate schedule"):
                 "Done": "Yes" if task.completed else "No",
             })
         st.table(table_data)
+
+        # Conflict detection
+        conflicts = scheduler.detect_conflicts()
+        if conflicts:
+            for warning in conflicts:
+                st.warning(warning)
     else:
         st.warning("No tasks scheduled for today. Add some tasks above!")
