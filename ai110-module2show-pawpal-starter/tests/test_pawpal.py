@@ -61,3 +61,17 @@ def test_detect_conflicts_flags_same_time():
     assert len(conflicts) == 1
     assert "Walk" in conflicts[0]
     assert "Feeding" in conflicts[0]
+
+
+def test_pet_with_no_tasks_returns_empty_schedule():
+    """INTENTIONALLY FAILING: expects 1 task but pet has none."""
+    owner = Owner(name="Alex", email="alex@example.com")
+    pet = Pet(name="Buddy", species="dog", breed="Lab", age=2)
+    owner.add_pet(pet)
+
+    scheduler = Scheduler()
+    scheduler.add_owner(owner)
+    todays = scheduler.get_tasks_due_today()
+
+    # this assert is wrong — pet has no tasks, so len should be 0
+    assert len(todays) == 1, "Expected 1 task but got none"
