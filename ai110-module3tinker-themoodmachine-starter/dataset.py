@@ -61,6 +61,11 @@ SAMPLE_POSTS = [
     "I'm fine 🙂",                                           # ambiguous — could be sarcasm or genuine
     "Ugh so tired of being tired 😩",                        # negative — exhausted
     "Honestly kind of sad but I'll get through it 💪",       # mixed: sadness + resilience
+    # Breaker sentences (Part 3: stress test)
+    "I love getting stuck in traffic",                        # sarcasm — model sees "love", scores positive
+    "sick beats bro",                                         # slang — "sick" is in negative words, but means cool
+    "not bad at all",                                         # negation of negative — should be positive
+    "I'm exhausted but so proud of what I accomplished",      # mixed — competing signals
 ]
 
 # Human labels for each post above.
@@ -86,6 +91,10 @@ TRUE_LABELS = [
     "neutral",   # "I'm fine 🙂" (ambiguous edge case)
     "negative",  # "Ugh so tired of being tired 😩"
     "mixed",     # "Honestly kind of sad but I'll get through it 💪"
+    "negative",  # "I love getting stuck in traffic" (sarcasm — true feeling is frustration)
+    "positive",  # "sick beats bro" (slang — "sick" means impressive/cool here)
+    "positive",  # "not bad at all" (negated negative = positive)
+    "mixed",     # "I'm exhausted but so proud of what I accomplished"
 ]
 
 # TODO: Add 5-10 more posts and labels.
