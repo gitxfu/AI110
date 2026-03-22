@@ -9,87 +9,76 @@ You may complete this model card for whichever version you used, or compare both
 
 ## 1. Model Overview
 
-**Model type:**  
-Describe whether you used the rule based model, the ML model, or both.  
-Example: “I used the rule based model only” or “I compared both models.”
+**Model type:**
+Both models were used and compared — a rule-based classifier in `mood_analyzer.py` and a logistic regression ML model in `ml_experiments.py`.
 
-**Intended purpose:**  
-What is this model trying to do?  
-Example: classify short text messages as moods like positive, negative, neutral, or mixed.
+**Intended purpose:**
+Classify short social media-style posts into one of four mood labels: positive, negative, neutral, or mixed.
 
-**How it works (brief):**  
-For the rule based version, describe the scoring rules you created.  
-For the ML version, describe how training works at a high level (no math needed).
+**How it works (brief):**
+The rule-based model tokenizes text, scores each token against positive/negative word lists (with negation handling and emoji signals), then maps the score to a label. The ML model converts posts into word-count vectors (bag of words) and learns which word patterns correlate with each label from the labeled examples.
 
 
 
 ## 2. Data
 
-**Dataset description:**  
-Summarize how many posts are in `SAMPLE_POSTS` and how you added new ones.
+**Dataset description:**
+Started with 6 posts, expanded to 20 total. New posts were intentionally varied: slang ("lowkey", "fire", "vibing"), emojis (🔥💀😩💪✨), sarcasm, and ambiguous mixed-emotion sentences.
 
-**Labeling process:**  
-Explain how you chose labels for your new examples.  
-Mention any posts that were hard to label or could have multiple valid labels.
+**Labeling process:**
+Labels were assigned by human judgment. Hard cases included "I'm fine 🙂" (labeled neutral, but could be sarcasm → negative) and "it is what it is" (resignation, labeled neutral). "sick beats bro" required cultural context — "sick" means impressive here, not bad.
 
-**Important characteristics of your dataset:**  
-Examples you might include:  
+**Important characteristics of your dataset:**
+- Small (25 examples) and English-only
+- Includes sarcasm, slang, emojis, and mixed feelings
+- Skewed toward mixed/negative posts; fewer purely positive examples
 
-- Contains slang or emojis  
-- Includes sarcasm  
-- Some posts express mixed feelings  
-- Contains short or ambiguous messages
-
-**Possible issues with the dataset:**  
-Think about imbalance, ambiguity, or missing kinds of language.
+**Possible issues with the dataset:**
+Labels reflect one person's interpretation. Sarcastic posts especially could be labeled differently by different people. The dataset lacks any formal language, longer sentences, or non-English expressions.
 
 ## 3. How the Rule Based Model Works (if used)
 
-**Your scoring rules:**  
-Describe the modeling choices you made.  
-Examples:  
+**Your scoring rules:**
+- Each positive word token adds +1; each negative word subtracts -1
+- Negation words ("not", "don't", "never", etc.) flip the sign of the next sentiment word
+- Positive emojis (🔥😂💪✨) add +1; negative emojis (😩😢💀) subtract -1; 🙂 is unscored (too ambiguous)
+- Short function words ("a", "so", "the") don't cancel the negation window
+- Label thresholds: if both positive and negative signals exist → mixed; else score > 0 → positive, score < 0 → negative, 0 → neutral
 
-- How positive and negative words affect score  
-- Negation rules you added  
-- Weighted words  
-- Emoji handling  
-- Threshold decisions for labels
+**Strengths of this approach:**
+Works reliably for clear single-sentiment posts and handles negation well ("I am not happy" → negative, "not bad at all" → positive). Fully transparent — every decision can be traced to a rule.
 
-**Strengths of this approach:**  
-Where does it behave predictably or reasonably well?
-
-**Weaknesses of this approach:**  
-Where does it fail?  
-Examples: sarcasm, subtlety, mixed moods, unfamiliar slang.
+**Weaknesses of this approach:**
+Cannot detect sarcasm ("I love getting stuck in traffic" → positive). Words outside the vocabulary are invisible ("hopeful", "proud", "accomplished" all score 0). Slang meaning depends on context ("sick" = bad in the word list, but cool in practice).
 
 ## 4. How the ML Model Works (if used)
 
-**Features used:**  
-Describe the representation.  
-Example: “Bag of words using CountVectorizer.”
+**Features used:**
+Bag of words using `CountVectorizer` — each post becomes a vector of word counts.
 
-**Training data:**  
-State that the model trained on `SAMPLE_POSTS` and `TRUE_LABELS`.
+**Training data:**
+Trained on all 25 posts in `SAMPLE_POSTS` with labels from `TRUE_LABELS`.
 
-**Training behavior:**  
-Did you observe changes in accuracy when you added more examples or changed labels?
+**Training behavior:**
+Adding more diverse posts improved the ML model's ability to distinguish mixed vs. negative cases. It correctly labeled “sick beats bro” as positive and detected sarcasm in “I love getting stuck in traffic” — both of which the rule-based model failed on. However, it trains and tests on the same data, so its 100% accuracy is overfitting, not generalization.
 
-**Strengths and weaknesses:**  
-Strengths might include learning patterns automatically.  
-Weaknesses might include overfitting to the training data or picking up spurious cues.
+**Strengths and weaknesses:**
+Strength: learns patterns from examples without needing explicit rules — slang and context are implicitly captured if labeled correctly. Weakness: with only 25 examples, it memorizes rather than generalizes. Any mislabeled post directly corrupts what it learns.
 
 ## 5. Evaluation
 
-**How you evaluated the model:**  
-Both versions can be evaluated on the labeled posts in `dataset.py`.  
-Describe what accuracy you observed.
+**How you evaluated the model:**
+Both models were evaluated against `TRUE_LABELS` on all 25 posts. Rule-based accuracy: **60%**. ML accuracy: **100%** (overfitted — trained and tested on same data).
 
-**Examples of correct predictions:**  
-Provide 2 or 3 examples and explain why they were correct.
+**Examples of correct predictions:**
+- "Today was a terrible day" → negative (rule-based: "terrible" hits; ML: learned from label)
+- "not bad at all" → positive (rule-based: negation of "bad" flips sign correctly)
+- "Ugh so tired of being tired 😩" → negative (rule-based: emoji + "tired" both score negative)
 
-**Examples of incorrect predictions:**  
-Provide 2 or 3 examples and explain why the model made a mistake.  
-If you used both models, show how their failures differed.
+**Examples of incorrect predictions (rule-based):**
+- "I love getting stuck in traffic" → predicted positive, true negative — sarcasm; "love" dominates
+- "everything is falling apart and I can't stop it" → predicted neutral, true negative — no words from the negative list matched
+- "Feeling tired but kind of hopeful" → predicted negative, true mixed — "hopeful" is not in the word list, so only "tired" scores
 
 ## 6. Limitations
 

@@ -66,6 +66,12 @@ SAMPLE_POSTS = [
     "sick beats bro",                                         # slang — "sick" is in negative words, but means cool
     "not bad at all",                                         # negation of negative — should be positive
     "I'm exhausted but so proud of what I accomplished",      # mixed — competing signals
+    # Extra posts to test model sensitivity
+    "honestly the best day I've had in a while",              # positive — no single obvious keyword
+    "everything is falling apart and I can't stop it",        # negative — no keyword matches
+    "vibing rn no thoughts just good energy ✨",              # positive — slang + emoji
+    "I wanted to cry but I held it together",                 # mixed — suppressed negative + resilience
+    "it is what it is",                                       # neutral — resignation, no sentiment words
 ]
 
 # Human labels for each post above.
@@ -95,6 +101,11 @@ TRUE_LABELS = [
     "positive",  # "sick beats bro" (slang — "sick" means impressive/cool here)
     "positive",  # "not bad at all" (negated negative = positive)
     "mixed",     # "I'm exhausted but so proud of what I accomplished"
+    "positive",  # "honestly the best day I've had in a while"
+    "negative",  # "everything is falling apart and I can't stop it"
+    "positive",  # "vibing rn no thoughts just good energy ✨"
+    "mixed",     # "I wanted to cry but I held it together"
+    "neutral",   # "it is what it is"
 ]
 
 # TODO: Add 5-10 more posts and labels.
