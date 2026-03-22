@@ -50,6 +50,17 @@ SAMPLE_POSTS = [
     "This is fine",
     "So excited for the weekend",
     "I am not happy about this",
+    # Added posts: slang, emojis, sarcasm, ambiguity
+    "Lowkey stressed but kind of proud of myself",           # mixed: pride + stress
+    "I absolutely love getting stuck in traffic 🙂",         # sarcasm — sounds positive, actually negative
+    "This party is fire no cap 🔥",                          # slang — positive
+    "I'm so done with everything rn 💀",                     # slang — negative (exhausted/fed up)
+    "Woke up late, missed the bus, but the weather is nice", # mixed: bad start, good moment
+    "meh, just another day",                                 # neutral — flat, no strong feeling
+    "Not gonna lie this is lowkey amazing",                  # positive with hedging slang
+    "I'm fine 🙂",                                           # ambiguous — could be sarcasm or genuine
+    "Ugh so tired of being tired 😩",                        # negative — exhausted
+    "Honestly kind of sad but I'll get through it 💪",       # mixed: sadness + resilience
 ]
 
 # Human labels for each post above.
@@ -65,6 +76,16 @@ TRUE_LABELS = [
     "neutral",   # "This is fine"
     "positive",  # "So excited for the weekend"
     "negative",  # "I am not happy about this"
+    "mixed",     # "Lowkey stressed but kind of proud of myself"
+    "negative",  # "I absolutely love getting stuck in traffic 🙂" (sarcasm)
+    "positive",  # "This party is fire no cap 🔥"
+    "negative",  # "I'm so done with everything rn 💀"
+    "mixed",     # "Woke up late, missed the bus, but the weather is nice"
+    "neutral",   # "meh, just another day"
+    "positive",  # "Not gonna lie this is lowkey amazing"
+    "neutral",   # "I'm fine 🙂" (ambiguous edge case)
+    "negative",  # "Ugh so tired of being tired 😩"
+    "mixed",     # "Honestly kind of sad but I'll get through it 💪"
 ]
 
 # TODO: Add 5-10 more posts and labels.
