@@ -17,17 +17,43 @@ Replace this paragraph with your own summary of what your version does.
 
 ## How The System Works
 
-Explain your design in plain language.
+Real-world recommenders like Spotify use a mix of collaborative filtering content-based filtering
 
-Some prompts to answer:
+### Song Features Used
 
-- What features does each `Song` use in your system
-  - For example: genre, mood, energy, tempo
-- What information does your `UserProfile` store
-- How does your `Recommender` compute a score for each song
-- How do you choose which songs to recommend
+Each song in `data/songs.csv` has these attributes:
 
-You can include a simple diagram or bullet list if helpful.
+| Feature | Type | Role |
+|---|---|---|
+| `genre` | categorical | exact match scoring |
+| `mood` | categorical | exact match scoring |
+| `energy` | float 0.0–1.0 | proximity scoring |
+| `tempo_bpm` | int | informational (not scored) |
+| `valence` | float 0.0–1.0 | informational (not scored) |
+| `danceability` | float 0.0–1.0 | informational (not scored) |
+| `acousticness` | float 0.0–1.0 | informational (not scored) |
+
+### User Profile
+
+
+user_prefs = {
+    "favorite_genre": "pop",
+    "favorite_mood": "happy",
+    "target_energy": 0.8,
+}
+
+### Algorithm Recipe
+
+Genre matches `favorite_genre`  +2.0 
+Mood matches `favorite_mood`  +1.0 
+Energy proximity  `1.0 - abs(song_energy - target_energy)`
+
+A pop/happy song with energy 0.82 against the profile above scores:
+2.0 + 1.0 + (1.0 - abs(0.82 - 0.8)) = 3.98
+
+**Data flow:**
+Input (User Profile) → Score every song in catalog → Sort by score descending → Return top K
+
 
 ---
 
