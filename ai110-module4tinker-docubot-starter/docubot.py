@@ -10,6 +10,20 @@ Core DocuBot class responsible for:
 import os
 import glob
 import re
+import math
+
+STOPWORDS = {
+    "a", "an", "the", "is", "are", "was", "were", "be", "been", "being",
+    "have", "has", "had", "do", "does", "did", "will", "would", "shall",
+    "should", "may", "might", "must", "can", "could", "am", "in", "on",
+    "at", "to", "for", "of", "with", "by", "from", "as", "into", "about",
+    "it", "its", "i", "me", "my", "we", "our", "you", "your", "he", "she",
+    "they", "them", "this", "that", "these", "those", "there", "here",
+    "how", "what", "which", "who", "when", "where", "why", "if", "or",
+    "and", "but", "not", "no", "any", "all", "each", "some",
+    "docs", "document", "documents", "mention", "using",
+}
+
 
 class DocuBot:
     def __init__(self, docs_folder="docs", llm_client=None):
@@ -20,11 +34,14 @@ class DocuBot:
         self.docs_folder = docs_folder
         self.llm_client = llm_client
 
-        # Load documents into memory
+        # Load documents and chunk them by heading
         self.documents = self.load_documents()  # List of (filename, text)
+        self.chunks = self._chunk_documents(self.documents)  # List of (label, text)
 
-        # Build a retrieval index (implemented in Phase 1)
-        self.index = self.build_index(self.documents)
+        # Build index over chunks, plus IDF weights
+        self.index = self.build_index(self.chunks)
+        self.num_chunks = len(self.chunks)
+        self.idf = self._compute_idf()
 
     # -----------------------------------------------------------
     # Document Loading
@@ -46,69 +63,95 @@ class DocuBot:
         return docs
 
     # -----------------------------------------------------------
-    # Index Construction (Phase 1)
+    # Chunking (Phase 2)
     # -----------------------------------------------------------
 
-    def build_index(self, documents):
+    def _chunk_documents(self, documents):
         """
-        TODO (Phase 1):
-        Build a tiny inverted index mapping lowercase words to the documents
-        they appear in.
+        Split each document into sections by markdown headings.
+        Prepends the doc title (first heading) to each chunk for context.
+        Returns a list of (filename, text) tuples.
+        """
+        chunks = []
+        for filename, text in documents:
+            sections = re.split(r"(?=^#{1,3}\s)", text, flags=re.MULTILINE)
+            # Extract the document title from the first heading
+            title = ""
+            for s in sections:
+                s = s.strip()
+                if s.startswith("#"):
+                    title = s.split("\n")[0]
+                    break
 
-        Example structure:
-        {
-            "token": ["AUTH.md", "API_REFERENCE.md"],
-            "database": ["DATABASE.md"]
-        }
+            for section in sections:
+                section = section.strip()
+                if not section:
+                    continue
+                # Prepend title to non-title chunks so the doc topic is searchable
+                if not section.startswith("# ") and title:
+                    section = title + "\n\n" + section
+                chunks.append((filename, section))
+        return chunks
 
-        Keep this simple: split on whitespace, lowercase tokens,
-        ignore punctuation if needed.
+    # -----------------------------------------------------------
+    # Index Construction (Phase 1 + 2)
+    # -----------------------------------------------------------
+
+    def _tokenize(self, text):
+        """Lowercase, extract words, remove stopwords."""
+        words = re.findall(r"[a-z0-9_]+", text.lower())
+        return [w for w in words if w not in STOPWORDS]
+
+    def build_index(self, chunks):
+        """
+        Build an inverted index mapping tokens to chunk indices.
         """
         index = {}
-        for filename, text in documents:
-            tokens = re.findall(r"[a-z0-9_]+", text.lower())
-            for token in set(tokens):
+        for i, (label, text) in enumerate(chunks):
+            for token in set(self._tokenize(text)):
                 if token not in index:
                     index[token] = []
-                index[token].append(filename)
+                index[token].append(i)
         return index
 
+    def _compute_idf(self):
+        """Compute IDF for each token: log(num_chunks / docs_containing_token)."""
+        idf = {}
+        for token, chunk_ids in self.index.items():
+            idf[token] = math.log(self.num_chunks / len(chunk_ids))
+        return idf
+
     # -----------------------------------------------------------
-    # Scoring and Retrieval (Phase 1)
+    # Scoring and Retrieval (Phase 1 + 2)
     # -----------------------------------------------------------
 
     def score_document(self, query, text):
         """
-        TODO (Phase 1):
-        Return a simple relevance score for how well the text matches the query.
-
-        Suggested baseline:
-        - Convert query into lowercase words
-        - Count how many appear in the text
-        - Return the count as the score
+        TF-IDF scoring: term frequency in the chunk * IDF weight.
         """
-        query_words = re.findall(r"[a-z0-9_]+", query.lower())
-        text_lower = text.lower()
-        score = sum(1 for word in query_words if word in text_lower)
+        query_words = self._tokenize(query)
+        text_tokens = self._tokenize(text)
+        score = 0.0
+        for word in query_words:
+            tf = text_tokens.count(word)
+            if tf > 0:
+                score += tf * self.idf.get(word, 0.0)
         return score
 
     def retrieve(self, query, top_k=3):
         """
-        TODO (Phase 1):
-        Use the index and scoring function to select top_k relevant document snippets.
-
-        Return a list of (filename, text) sorted by score descending.
+        Use the index to find candidate chunks, score with TF-IDF,
+        return top_k as (filename, text) sorted by score descending.
         """
-        query_words = re.findall(r"[a-z0-9_]+", query.lower())
-        candidate_files = set()
+        query_words = self._tokenize(query)
+        candidate_indices = set()
         for word in query_words:
             if word in self.index:
-                candidate_files.update(self.index[word])
+                candidate_indices.update(self.index[word])
 
-        doc_lookup = {filename: text for filename, text in self.documents}
         scored = []
-        for filename in candidate_files:
-            text = doc_lookup[filename]
+        for i in candidate_indices:
+            filename, text = self.chunks[i]
             score = self.score_document(query, text)
             scored.append((score, filename, text))
 
