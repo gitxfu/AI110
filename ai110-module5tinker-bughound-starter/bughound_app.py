@@ -4,7 +4,7 @@ import streamlit as st
 from dotenv import load_dotenv
 
 from bughound_agent import BugHoundAgent
-from llm_client import GeminiClient, MockClient
+from llm_client import GeminiClient, GroqClient, MockClient
 
 # ----------------------------
 # App setup
@@ -78,6 +78,7 @@ mode = st.sidebar.selectbox(
     [
         "Heuristic only (no API)",
         "Gemini (requires API key)",
+        "Groq (requires API key)",
     ],
     help="Heuristic mode runs fully offline. Gemini mode calls the Gemini API for analysis and fix proposal.",
 )
@@ -85,11 +86,19 @@ mode = st.sidebar.selectbox(
 # [cite_start]UPDATED: Added a warning for free-tier users to manage expectations regarding API limits. [cite: 176, 192]
 if mode == "Gemini (requires API key)":
     st.sidebar.warning("⚠️ Gemini Free Tier: You have a limit of ~20 requests. Use Heuristic mode for initial testing to save your quota.")
+elif mode == "Groq (requires API key)":
+    st.sidebar.info("ℹ️ Groq mode uses GROQ_API_KEY from your .env file.")
 
 model_name = st.sidebar.selectbox(
     "Gemini model",
-    ["gemini-2.5-flash", "gemini-2.5-pro"], # Reverting to existing version names from llm_client.py
+    ["gemini-2.5-flash", "gemini-2.5-pro"],
     disabled=(mode != "Gemini (requires API key)"),
+)
+
+groq_model_name = st.sidebar.selectbox(
+    "Groq model",
+    ["qwen/qwen3-32b", "openai/gpt-oss-120b"],
+    disabled=(mode != "Groq (requires API key)"),
 )
 
 temperature = st.sidebar.slider(
@@ -98,7 +107,7 @@ temperature = st.sidebar.slider(
     max_value=1.0,
     value=0.2,
     step=0.1,
-    disabled=(mode != "Gemini (requires API key)"),
+    disabled=(mode == "Heuristic only (no API)"),
     help="Lower values tend to be more consistent. Higher values tend to be more creative.",
 )
 
@@ -120,6 +129,14 @@ client_status = ""
 if mode == "Heuristic only (no API)":
     client = MockClient()
     client_status = "Using MockClient. No network calls."
+elif mode == "Groq (requires API key)":
+    api_key = os.getenv("GROQ_API_KEY", "").strip()
+    if not api_key:
+        client = None
+        client_status = "Missing GROQ_API_KEY. Add it to your .env file to use Groq mode."
+    else:
+        client = GroqClient(model_name=groq_model_name, temperature=temperature)
+        client_status = f"Groq client ready ({groq_model_name})."
 else:
     api_key = os.getenv("GEMINI_API_KEY", "").strip()
     if not api_key:
@@ -165,8 +182,8 @@ if run_button:
     if not require_code_input(code_input):
         st.stop()
 
-    if mode == "Gemini (requires API key)" and client is None:
-        st.error("Gemini mode is selected, but no API key is available.")
+    if mode in ("Gemini (requires API key)", "Groq (requires API key)") and client is None:
+        st.error(f"{mode} is selected, but no API key is available.")
         st.stop()
 
     agent = BugHoundAgent(client=client)

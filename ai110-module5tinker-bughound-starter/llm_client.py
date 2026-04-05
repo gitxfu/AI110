@@ -1,5 +1,7 @@
 import os
 from typing import Optional
+from dotenv import load_dotenv
+load_dotenv()
 
 
 class MockClient:
@@ -14,6 +16,44 @@ class MockClient:
             # Purposely not JSON to force fallback unless students change behavior.
             return "I found some issues, but I'm not returning JSON right now."
         return "# MockClient: no rewrite available in offline mode.\n"
+
+
+class GroqClient:
+    """
+    Groq API wrapper using the Groq SDK.
+
+    Requirements:
+    - groq installed (pip install groq)
+    - GROQ_API_KEY set in environment (or loaded via python-dotenv)
+    """
+
+    def __init__(self, model_name: str = "qwen/qwen3-32b", temperature: float = 0.6):
+        from groq import Groq
+        self.client = Groq()  # reads GROQ_API_KEY from environment automatically
+        self.model_name = model_name
+        self.temperature = temperature
+
+    def complete(self, system_prompt: str, user_prompt: str) -> str:
+        try:
+            completion = self.client.chat.completions.create(
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                temperature=self.temperature,
+                max_completion_tokens=4096,
+                top_p=0.95,
+                reasoning_effort="default",
+                stream=True,
+                stop=None,
+            )
+            result = ""
+            for chunk in completion:
+                result += chunk.choices[0].delta.content or ""
+            return result   # full text, same as non-streaming from the agent's perspective
+        except Exception:
+            return ""
 
 
 class GeminiClient:
