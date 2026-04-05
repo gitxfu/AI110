@@ -6,8 +6,8 @@
 
 ### TFs should:
 
-- [ ] Understand expected repo structure
-- [ ] Set up a new repo with the previous project chosen
+- [X] Understand expected repo structure
+- [X] Set up a new repo with the previous project chosen
 
 ### TFs may skip:
 
@@ -19,10 +19,10 @@
 
 ### TFs should:
 
-- [ ] Identify which new AI feature will be added to your project
-- [ ] Verify the feature is actually used in logic
-- [ ] Detect shallow or fake integrations
-- [ ] Trace data flow end‑to‑end
+- [X] Identify which new AI feature will be added to your project
+- [X] Verify the feature is actually used in logic
+- [X] Detect shallow or fake integrations
+- [X] Trace data flow end‑to‑end
 
 **New concepts:** System integration thinking, feature authenticity
 
@@ -32,9 +32,9 @@
 
 ### TFs should:
 
-- [ ] Create a system diagram or at least understand how adding in a new AI feature will fit into your system
-- [ ] Confirm alignment with code
-- [ ] Flag mismatches
+- [X] Create a system diagram or at least understand how adding in a new AI feature will fit into your system
+- [X] Confirm alignment with code
+- [X] Flag mismatches
 
 ### TFs may skip:
 
@@ -46,7 +46,7 @@
 
 ### TFs should:
 
-- [ ] Understand what is going in the README
+- [X] Understand what is going in the README
 
 ### TFs may skip:
 
@@ -58,13 +58,13 @@
 
 ### TFs should:
 
-- [ ] Identify what reliability signal is used
-- [ ] Include at least one way to test or measure its reliability
+- [X] Identify what reliability signal is used
+- [X] Include at least one way to test or measure its reliability
   - Automated tests
   - Confidence scoring
   - Logging and error handling
   - Human evaluation
-- [ ] Be able to document your findings from your testing
+- [X] Be able to document your findings from your testing
 
 ### TFs may skip:
 
@@ -76,7 +76,7 @@
 
 ### TFs should:
 
-- [ ] Understand rubric expectations
+- [X] Understand rubric expectations
 
 ### TFs may skip:
 
