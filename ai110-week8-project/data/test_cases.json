@@ -1,0 +1,14 @@
+[
+  {
+    "question": "What are the optional stretch features available for extra points?",
+    "expected_answer": "RAG Enhancement, Agentic Workflow Enhancement, Fine-Tuning or Specialization, and Test Harness or Evaluation Script, each worth 2 points."
+  },
+  {
+    "question": "How many extra points can stretch features earn in total?",
+    "expected_answer": "Up to 8 additional points."
+  },
+  {
+    "question": "What do I need to build for the Test Harness stretch feature?",
+    "expected_answer": "A script that runs the system on predefined inputs and prints a summary with pass/fail scores or confidence ratings."
+  }
+]
