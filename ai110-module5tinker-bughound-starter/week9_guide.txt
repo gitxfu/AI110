@@ -1,0 +1,233 @@
+Tinker: BugHound
+ℹ️ Activity Overview
+⏰ ~45 minutes
+
+You are working on BugHound, an experimental AI powered debugging assistant. BugHound is not just a tool that points out problems. It is designed to behave like a cautious teammate that:
+
+examines code
+proposes changes
+evaluates the risk of those changes
+decides whether to act automatically or defer to a human
+BugHound follows an agentic workflow rather than a single AI call. Some parts of this workflow rely on simple rules. Other parts rely on a large language model. Crucially, BugHound also includes reliability checks that can override or reject AI generated output when it seems unsafe.
+
+Your task in this activity is not to make BugHound perfect. It is to understand how agentic systems are structured, where they fail, and how testing and guardrails shape their behavior.
+
+You will explore an existing starter system, observe its limitations, and make targeted design decisions about when the agent should trust itself and when it should slow down or ask for help.
+
+🎯 Goals
+By the end of this activity, you will be able to:
+
+Describe an agentic workflow that includes analysis, action, evaluation, and reflection.
+Integrate an AI model into a larger system rather than treating it as a standalone solution.
+Reason about reliability, risk, and failure modes in AI assisted coding tools.
+Use testing and guardrails to limit unsafe or low confidence AI behavior.
+Reflect on when autonomous systems should defer to human judgment.
+✏️ Tinker Instructions
+Part 1: Exploring the Agentic Workflow
+⏰ ~10 mins
+
+In this section, you'll set up the project and explore how BugHound is structured as an agentic system.
+
+Note on API Limits: For this activity, you are using the Gemini API Free Tier, which is limited to 20 requests per day. To ensure you have enough quota for the AI-specific tasks in Parts 2 and 3, you will perform your initial exploration in Heuristic only (offline) mode.
+
+Rather than jumping straight into writing new code, your focus is to understand how the existing pieces work together, what decisions the agent already makes, and where those decisions are fragile or incomplete. You'll run BugHound in its current state, observe its behavior, and map parts of the codebase to stages of an agentic workflow.
+
+
+Go to the BugHound starter repo and fork it to your own GitHub account.
+
+
+Clone your fork to your computer and open the project folder in VS Code.
+
+
+Create a virtual environment and install dependencies using requirements.txt.
+
+
+Open the file bughound_app.py. This file defines the user interface and how the agent is run. Use Copilot to help you understand how the app runs the agent and displays results.
+
+
+Open the file bughound_agent.py. This file defines the agent's workflow and decision making logic.
+
+
+Skim the reliability/risk_assessor.py file. This file represents BugHound's safety and reliability layer.
+
+
+In your terminal, run the app using Streamlit.
+
+
+In the sidebar, select Heuristic only (no API) mode.
+
+Toggle the mode to "Gemini" briefly just to see the sidebar warning about API limits, then switch back to Heuristic only to preserve your quota.
+
+Open a file from the sample_code/ folder and paste its contents into the app.
+
+
+Run BugHound and observe the output. As you explore the results, discuss or jot down notes on the following:
+
+Where does BugHound decide what problems exist in the code?
+Where does it decide how to change the code?
+Where does it decide whether the change is safe?
+What happens when the agent produces a result that feels incomplete or questionable?
+Focus on what BugHound says it found and why. Do not worry yet about whether the fix is "good."
+
+Look at the Agent Trace section. Read the trace from top to bottom. Each entry explains a decision the agent made.
+
+Note how the agent explicitly logs "Using heuristic analyzer (offline mode)" or "Using heuristic fixer." This confirms the agent is aware of its operational state.
+📍Checkpoint: You can run BugHound locally, explain the high-level flow of its agentic loop, and identify at least one place where the agent's current behavior feels unreliable. Crucially, you have successfully explored the workflow in offline mode to preserve your limited AI request quota for the sections ahead.
+Part 2: Integrating an AI Analyzer
+⏰ ~10 mins
+
+In this section, you will introduce an AI model into BugHound's analysis step. Rather than replacing the entire system with AI, you will treat the model as a tool the agent can use, and observe how that choice changes the agent’s behavior.
+
+Your focus is on integration and reliability, not on writing the “perfect” prompt.
+
+
+Open the prompts/ folder and read the analyzer prompt files.
+
+What constraints are placed on the model's output?
+What assumptions is the agent making about how the model will respond?
+You are not expected to fully understand or memorize these prompts. Focus on what the agent expects back from the model, not the wording itself.
+
+If you do not already have one, generate a Gemini API key.
+
+
+In the project root, create a .env file using .env.example as a guide. Add your Gemini API key to this file.
+
+
+Open bughound_agent.py and locate the analyze method. Use Copilot to help you understand how the agent decides between heuristic analysis and AI-powered analysis. Identify where the agent parses and validates the model's output.
+
+
+Run BugHound in Gemini (requires API key) mode.
+
+Note: Every time you click "Run BugHound" in this mode, it uses one of your 20 available requests. Use them intentionally.
+
+Test at least two files from the sample_code/ folder. As you test, pay attention to the following:
+
+How does the set of detected issues differ between heuristic mode and Gemini mode?
+Are there cases where the model output feels ambiguous or hard for the agent to interpret?
+What happens when the model output does not follow the expected structure exactly?
+
+Make one intentional change to improve reliability in the analysis step.
+
+You might adjust how strict the agent is when accepting AI output.
+You might change when the agent falls back to heuristics.
+Before making changes, use Copilot in Plan mode to think through the impact.
+After making changes, run BugHound again on the same input to isolate the effect.
+Throughout this process, be sure to:
+Treat Copilot suggestions as drafts.
+Reject or revise suggestions that conflict with your understanding of the system.
+Use short, task-focused chat sessions. Start a new session if your goal changes.
+
+Run BugHound again after your change and observe how the behavior shifts.
+
+📍Checkpoint: You have successfully integrated an AI model into BugHound's analysis step, confirmed your API setup, and made at least one design decision that improves how the agent handles imperfect model output.
+Part 3: Proposing Fixes and Evaluating Risk
+⏰ ~10 mins
+
+BugHound can now analyze code using an AI model. In this section, you'll focus on what happens after issues are detected. This is where BugHound moves from "assistant that comments" to "agent that acts."
+
+Rather than blindly applying AI-generated fixes, BugHound evaluates the risk of those changes and decides whether they should be applied automatically or deferred to a human.
+
+Your goal is to understand and refine this decision-making process.
+
+
+Open bughound_agent.py and locate the propose_fix method.
+
+Notice how the agent uses detected issues and the original code together.
+Identify where the agent chooses between heuristic fixes and AI-generated fixes.
+
+Open the fixer prompt files in the prompts/ folder.
+
+What guidance is given about preserving behavior and minimizing changes?
+What assumptions does the agent make about the format of the model's response?
+Focus on the constraints in the prompt, such as "preserve behavior" or "make minimal changes." These phrases shape how risky the fix can be.
+
+Run BugHound in Gemini (requires API key) mode on a file from sample_code/ that contains multiple issues.
+
+
+Examine the proposed fix and the diff shown in the UI. As you review the results, consider:
+
+Did the fix change more than you expected?
+Did it alter behavior in subtle ways?
+Would you feel comfortable merging this change without review?
+Look for changes that affect control flow, return values, or error handling. These are usually higher risk than formatting changes.
+
+Open reliability/risk_assessor.py.
+
+Read through the rules used to score risk and assign a risk level.
+Identify which rules are conservative and which might be overly permissive.
+
+Make one small, deliberate change to the risk assessment logic.
+
+Before editing, use Copilot in Plan mode to think through the effect of your change.
+Choose one of the following directions:
+Make auto-fix harder to trigger by tightening the conditions for should_autofix
+Add one new risk signal that increases caution when certain kinds of changes occur
+Implement the smallest change that clearly affects the agent's decision.
+
+Run BugHound again on the same input and compare the new risk report to the previous one.
+
+You are looking for a difference in decision, not a "better" score. Even a small shift toward caution is meaningful.
+📍Checkpoint: You have traced how BugHound proposes fixes, examined how risk is evaluated, and made at least one intentional change that affects whether the agent trusts or rejects its own AI-generated output.
+Part 4: Testing, Reliability, and Guardrails
+⏰ ~10 mins
+
+In this section, you will pressure-test BugHound like a real engineering team would. Agentic systems fail in predictable ways: they hallucinate issues, over-edit code, misunderstand intent, or return output that is hard to use.
+
+Your goal is to uncover failure modes and strengthen the system’s guardrails using tests and reliability rules, without turning BugHound into a rigid tool that never takes action.
+
+
+Open the tests/ folder and skim the existing tests.
+
+Note how test_agent_workflow.py uses a MockClient to test the agent's fallback logic without making real API calls.
+Identify what behaviors are being checked and what assumptions the tests encode about "safe" behavior.
+Start by reading the test names and assertions, not the code logic. Ask yourself: what behavior is this test trying to prevent or allow?
+
+Run the tests. If a test fails, use Copilot to help interpret the failure message. Verify the explanation by tracing where that value is produced in the code.
+
+
+Choose three different inputs to test BugHound's behavior:
+
+A file that should mostly be left alone (ex: sample_code/cleanish.py)
+A file with obvious issues (ex: sample_code/mixed_issues.py)
+A "weird" case (empty file, comments only, or code that intentionally violates a heuristic)
+
+For each input, run BugHound and look for these reliability problems:
+
+False positives: BugHound "fixes" something that is not actually a problem.
+Over-editing: The fix changes too much of the code at once.
+Format failures: The model output is not usable by the agent (wrong structure, extra text, etc.).
+Unsafe confidence: The risk report suggests auto-fixing when you would want human review.
+
+Pick one failure mode you observed and decide how the system should respond instead.
+
+Before coding, use Copilot in Plan mode to think through where a guardrail belongs.
+Decide whether the guardrail should live in:
+the risk assessment logic
+the agent workflow
+or the test layer
+
+Update or add one test that checks your new guardrail.
+
+Use the MockClient structure to ensure your test can run offline and doesn't count against your 20-request quota.
+Use Copilot to help draft the structure of the test if needed.
+Make sure the test asserts a decision, such as:
+the agent does not auto-fix
+the risk level increases
+or the agent falls back to heuristics
+Confirm that the test would fail without your guardrail and pass after it is added.
+📍Checkpoint: You have tested BugHound across multiple inputs and modes, identified at least one meaningful failure mode, and strengthened the system using a guardrail backed by a test.
+Part 5: Reflection and Model Card
+⏰ ~10 mins
+
+In this final section, you will synthesize your findings from the activity. Documentation is a critical part of AI engineering, as it helps teams understand the limitations and expected behavior of agentic systems.
+
+Open the model_card.md file located in your project root directory.
+Complete the System Overview: Define the name, core purpose, and intended users of BugHound based on the initial project goals.
+Describe the Workflow: Explain the steps of the agentic loop (plan, analyze, act, test, and reflect) and clarify when the system uses heuristics versus Gemini.
+Document Inputs and Outputs: List the specific code snippets you tested and describe the types of issues and risk reports the agent generated.
+Analyze Reliability and Safety Rules: Evaluate at least two rules from the risk_assessor.py file, identifying why they are necessary and what false positives or negatives they might trigger.
+Detail Observed Failure Modes: Record at least two instances where the agent's behavior was unreliable, such as over-editing code or failing to interpret model output correctly.
+Compare Heuristic vs. Gemini Modes: Contrast how the two modes detected issues and proposed fixes, noting any discrepancies in accuracy or interpretation.
+Identify Human-in-the-Loop Triggers: Describe a scenario where the agent should refuse to act automatically and instead defer to human judgment.
+Propose a System Improvement: Suggest one specific, low-complexity change -- such as a new guardrail or a refined prompt -- that would measurably increase BugHound’s reliability.
+📍Checkpoint: You have completed the model_card.md, providing a clear record of the system's current capabilities, its observed failures, and a plan for future safety improvements.
