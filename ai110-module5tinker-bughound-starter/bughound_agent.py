@@ -1,8 +1,11 @@
+from llm_client import MockClient
 import json
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
 from reliability.risk_assessor import assess_risk
+
+VALID_SEVERITIES = {"High", "Medium", "Low"}
 
 
 class BugHoundAgent:
@@ -172,7 +175,8 @@ class BugHoundAgent:
     # Parsing + utilities
     # ----------------------------
     def _parse_json_array_of_issues(self, text: str) -> Optional[List[Dict[str, str]]]:
-        text = text.strip()
+        # Strip chain-of-thought blocks emitted by reasoning models (e.g. Groq qwen3)
+        text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
         parsed = self._try_json_loads(text)
         if isinstance(parsed, list):
             return self._normalize_issues(parsed)
@@ -190,11 +194,18 @@ class BugHoundAgent:
         for item in arr:
             if not isinstance(item, dict):
                 continue
+            msg = str(item.get("msg", "")).strip()
+            if not msg:
+                self._log("ANALYZE", "Skipping issue with empty msg field.")
+                continue
+            severity = str(item.get("severity", "Unknown")).strip().capitalize()
+            if severity not in VALID_SEVERITIES:
+                severity = "Unknown"
             issues.append(
                 {
                     "type": str(item.get("type", "Issue")),
-                    "severity": str(item.get("severity", "Unknown")),
-                    "msg": str(item.get("msg", "")).strip(),
+                    "severity": severity,
+                    "msg": msg,
                 }
             )
         return issues
@@ -231,3 +242,6 @@ class BugHoundAgent:
 
     def _log(self, step: str, message: str) -> None:
         self.logs.append({"step": step, "message": message})
+
+
+
