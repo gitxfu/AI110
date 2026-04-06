@@ -47,3 +47,34 @@ def test_mock_client_forces_llm_fallback_to_heuristics_for_analysis():
     assert any(issue.get("type") == "Code Quality" for issue in result["issues"])
     # Ensure we logged the fallback path
     assert any("Falling back to heuristics" in entry.get("message", "") for entry in result["logs"])
+
+
+# ----------------------------
+# Sample file tests (Part 4)
+# ----------------------------
+
+def test_cleanish_has_no_high_severity_issues():
+    with open("sample_code/cleanish.py") as f:
+        code = f.read()
+    agent = BugHoundAgent(client=None)
+    result = agent.run(code)
+    high = [i for i in result["issues"] if i["severity"] == "High"]
+    assert len(high) == 0, f"Expected no High issues on clean code, got: {high}"
+
+
+def test_mixed_issues_detects_multiple_issues_and_blocks_autofix():
+    with open("sample_code/mixed_issues.py") as f:
+        code = f.read()
+    agent = BugHoundAgent(client=None)
+    result = agent.run(code)
+    assert len(result["issues"]) >= 2, "Expected at least 2 issues in mixed_issues.py"
+    assert result["risk"]["should_autofix"] is False
+
+
+def test_flaky_try_except_detects_reliability_issue():
+    with open("sample_code/flaky_try_except.py") as f:
+        code = f.read()
+    agent = BugHoundAgent(client=None)
+    result = agent.run(code)
+    reliability = [i for i in result["issues"] if i["type"] == "Reliability"]
+    assert len(reliability) >= 1, "Expected a Reliability issue for bare except"

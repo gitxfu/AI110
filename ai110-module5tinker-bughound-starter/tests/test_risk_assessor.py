@@ -46,3 +46,14 @@ def test_missing_return_is_penalized():
     )
     assert risk["score"] < 100
     assert any("Return" in r or "return" in r for r in risk["reasons"])
+
+
+def test_medium_severity_blocks_autofix():
+    # Validates Option B guardrail: any Medium/High issue must block auto-fix
+    # regardless of score level.
+    risk = assess_risk(
+        original_code="def f():\n    try:\n        pass\n    except:\n        pass\n",
+        fixed_code="def f():\n    try:\n        pass\n    except Exception as e:\n        pass\n",
+        issues=[{"type": "Reliability", "severity": "Medium", "msg": "bare except"}],
+    )
+    assert risk["should_autofix"] is False
