@@ -80,7 +80,11 @@ def assess_risk(
     # ----------------------------
     # Auto-fix policy
     # ----------------------------
-    should_autofix = level == "low"
+    has_serious_issue = any(
+        str(i.get("severity", "")).lower() in ("high", "medium")
+        for i in issues
+    )
+    should_autofix = level == "low" and not has_serious_issue
 
     if not reasons:
         reasons.append("No significant risks detected.")

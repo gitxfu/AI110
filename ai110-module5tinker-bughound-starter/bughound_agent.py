@@ -115,6 +115,7 @@ class BugHoundAgent:
             self._log("ACT", f"API Error: {str(e)}. Falling back to heuristic fixer.")
             return self._heuristic_fix(code_snippet, issues)
 
+        raw = re.sub(r"<think>.*?</think>", "", raw, flags=re.DOTALL)
         cleaned = self._strip_code_fences(raw).strip()
 
         if not cleaned:
