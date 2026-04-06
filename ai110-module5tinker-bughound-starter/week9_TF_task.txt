@@ -1,13 +1,16 @@
 # TF Tasks for Week 9
 
 - The core concept students needed to understand
-
-
+Agent Workflow, Testing and Guardrails are the core concepts of this tinker.
 
 - Where students are most likely to struggle
-
+I found the instructions this week are intentionally vague and open-ended, and the codebase is heavier than before.
+I need to be ready to answer students' questions on the main goal for part 2 and 3.
 
 - Where AI was helpful vs misleading
-
+AI is helpful to help quickly understand the codebase, but it can be misleading when integrating with Gemini.
+Most of time students are asked to use offline so AI doesn't have information on the real API output. 
 
 - One way they would guide a student without giving the answer
+Read the prompts folder and sample_code and really think through the expected behaviors. 
+There could be different understandings of risky bug fix. 
